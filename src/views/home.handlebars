@@ -10,9 +10,7 @@
     <h1>Lista de Productos</h1>
     <ul id="productList">
         {{#each products}}
-            <li>
-                {{this.title}} - {{this.price}} USD - Cantidad: {{this.quantity}}
-            </li>
+            <li>{{this.title}} - {{this.price}} USD - Cantidad: {{this.quantity}}</li>
         {{/each}}
     </ul>
 
@@ -20,12 +18,10 @@
     <script>
         const socket = io();
 
-        // Actualizamos la lista de productos en la vista home
         socket.on('updateProducts', (products) => {
             const productList = document.getElementById('productList');
-            productList.innerHTML = ''; // Limpiar la lista de productos
+            productList.innerHTML = '';
 
-            // Renderizamos los productos actualizados
             products.forEach((product) => {
                 const productItem = document.createElement('li');
                 productItem.textContent = `${product.title} - ${product.price} USD - Cantidad: ${product.quantity}`;

@@ -1,3 +1,4 @@
+// public/js/realtimeproducts.js
 const socket = io();
 
 // Capturamos el formulario de agregar productos
@@ -8,44 +9,41 @@ const productList = document.getElementById('productList');
 addProductForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    // Capturamos los valores del formulario
     const productTitle = document.getElementById('productTitle').value;
-    const productPrice = parseFloat(document.getElementById('productPrice').value); // Aseguramos que sea un número
-    const productQuantity = parseInt(document.getElementById('productQuantity').value, 10); // Aseguramos que sea un número entero
+    const productPrice = parseFloat(document.getElementById('productPrice').value);
+    const productQuantity = parseInt(document.getElementById('productQuantity').value, 10);
 
-    // Validamos que los valores no sean negativos
     if (productPrice < 0 || productQuantity <= 0) {
         Swal.fire({
             icon: "error",
             title: "¡Error!",
             text: "El precio y la cantidad deben ser números positivos."
         });
-        return; // No enviamos los datos si hay errores
+        return;
     }
 
     const newProduct = {
-        id: Date.now(), // ID único usando timestamp
+        id: Date.now(),
         title: productTitle,
         price: productPrice,
-        quantity: productQuantity,
+        quantity: productQuantity
     };
 
-    socket.emit('addProduct', newProduct); // Emitir el nuevo producto al servidor
-    addProductForm.reset(); // Limpiar el formulario
+    socket.emit('addProduct', newProduct);  // Emitir el nuevo producto
+    addProductForm.reset();  // Limpiar el formulario
 });
 
-// Recibir la lista de productos y actualizar el DOM
+// Actualizar la lista de productos
 socket.on('updateProducts', (products) => {
-    productList.innerHTML = ''; // Limpiar la lista existente
+    productList.innerHTML = '';
     products.forEach((product) => {
         const productItem = document.createElement('li');
         productItem.textContent = `${product.title} - ${product.price} USD - Cantidad: ${product.quantity}`;
 
-        // Crear un botón para eliminar el producto
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'Eliminar';
         deleteButton.addEventListener('click', () => {
-            socket.emit('deleteProduct', product.id); // Emitir el ID del producto a eliminar
+            socket.emit('deleteProduct', product.id);  // Emitir el ID del producto para eliminarlo
         });
 
         productItem.appendChild(deleteButton);

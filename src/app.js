@@ -1,13 +1,18 @@
+// app.js
 import express from 'express';
 import handlebars from 'express-handlebars';
 import { Server } from 'socket.io';
 import __dirname from './utils.js';
 import viewRouter from './routes/views.router.js';
+import ProductManager from './services/ProductManager.js';
 
 const app = express();
 const PORT = process.env.PORT || 9090;
 
-// Preparar la configuración del servidor para recibir objetos JSON
+// Instanciamos el ProductManager
+const productManager = new ProductManager();
+
+// Configuración del servidor para aceptar objetos JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -30,32 +35,22 @@ const httpServer = app.listen(PORT, () => {
 // Configuración del servidor de WebSockets
 const socketServer = new Server(httpServer);
 
-// Almacenar los productos en una lista
-let products = [];
-
 // Manejar la conexión de los clientes al WebSocket
 socketServer.on('connection', (socket) => {
     console.log('Cliente conectado');
 
-    // Enviar la lista inicial de productos a todos los clientes conectados
-    socket.emit('updateProducts', products); // Esto envía a cada cliente los productos cuando se conectan
+    // Enviar la lista de productos a los clientes al conectarse
+    socket.emit('updateProducts', productManager.getProducts());
 
     // Escuchar el evento para agregar productos
     socket.on('addProduct', (newProduct) => {
-        // Validación en el servidor
-        if (newProduct.price < 0 || newProduct.quantity <= 0) {
-            console.log('Producto inválido:', newProduct);
-            return;
-        }
-    
-        products.push(newProduct);
-        socketServer.emit('updateProducts', products); // Emitir productos actualizados a todos los clientes
+        productManager.addProduct(newProduct);
+        socketServer.emit('updateProducts', productManager.getProducts());
     });
-    
 
     // Escuchar el evento para eliminar productos
     socket.on('deleteProduct', (productId) => {
-        products = products.filter(p => p.id !== productId); // Filtrar los productos eliminados
-        socketServer.emit('updateProducts', products); // Enviar productos actualizados a todos los clientes
+        productManager.deleteProduct(productId);
+        socketServer.emit('updateProducts', productManager.getProducts());
     });
 });
