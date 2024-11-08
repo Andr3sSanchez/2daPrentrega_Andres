@@ -1,56 +1,46 @@
-// app.js
 import express from 'express';
 import handlebars from 'express-handlebars';
 import { Server } from 'socket.io';
+import mongoose from 'mongoose';
 import __dirname from './utils.js';
 import viewRouter from './routes/views.router.js';
-import ProductManager from './services/ProductManager.js';
+import productsRouter from './routes/products.router.js';
+import cartRouter from './routes/cart.router.js';
 
 const app = express();
 const PORT = process.env.PORT || 9090;
 
-// Instanciamos el ProductManager
-const productManager = new ProductManager();
-
-// Configuración del servidor para aceptar objetos JSON
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+mongoose.connect('mongodb+srv://andressanchez447:jbvXmn9QWK3DDiOS@cluster0.6u1ge.mongodb.net/myStore?retryWrites=true&w=majority', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => {
+  console.log("Conexión a MongoDB exitosa");
+})
+.catch(err => {
+  console.error("Error al conectar con MongoDB:", err);
+});
 
 // Configuración de Handlebars
 app.engine('handlebars', handlebars.engine());
-app.set('views', __dirname + '/views');
 app.set('view engine', 'handlebars');
+app.set('views', __dirname + '/views');
 
-// Configuración para servir archivos estáticos
+// Configuración para recibir JSON y formularios
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Servir archivos estáticos
 app.use(express.static(__dirname + '/public'));
 
-// Rutas del router de vistas
+// Rutas de vistas y APIs
 app.use('/', viewRouter);
+app.use('/api/products', productsRouter);
+app.use('/api/carts', cartRouter);
 
-// Iniciar el servidor HTTP
+// Iniciar servidor HTTP
 const httpServer = app.listen(PORT, () => {
     console.log(`Server running on port: ${PORT}`);
 });
 
-// Configuración del servidor de WebSockets
 const socketServer = new Server(httpServer);
-
-// Manejar la conexión de los clientes al WebSocket
-socketServer.on('connection', (socket) => {
-    console.log('Cliente conectado');
-
-    // Enviar la lista de productos a los clientes al conectarse
-    socket.emit('updateProducts', productManager.getProducts());
-
-    // Escuchar el evento para agregar productos
-    socket.on('addProduct', (newProduct) => {
-        productManager.addProduct(newProduct);
-        socketServer.emit('updateProducts', productManager.getProducts());
-    });
-
-    // Escuchar el evento para eliminar productos
-    socket.on('deleteProduct', (productId) => {
-        productManager.deleteProduct(productId);
-        socketServer.emit('updateProducts', productManager.getProducts());
-    });
-});

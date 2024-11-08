@@ -1,7 +1,6 @@
 {
   "name": "2daprentrega",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -13,6 +12,10 @@
   "dependencies": {
     "express": "^4.21.1",
     "express-handlebars": "^8.0.1",
+    "mongodb": "^6.10.0",
+    "mongoose": "^8.8.0",
+    "mongoose-paginate-v2": "^1.8.5",
     "socket.io": "^4.8.0"
-  }
+  },
+  "description": ""
 }

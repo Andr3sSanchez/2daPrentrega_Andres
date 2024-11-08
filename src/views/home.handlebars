@@ -3,31 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Productos</title>
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
     <h1>Lista de Productos</h1>
     <ul id="productList">
         {{#each products}}
-            <li>{{this.title}} - {{this.price}} USD - Cantidad: {{this.quantity}}</li>
+            <li>
+                <p><strong>{{this.title}}</strong> - {{this.price}} USD - {{this.category}}</p>
+                <a href="/products/{{this._id}}">Ver detalles</a>
+                <button onclick="addToCart('{{this._id}}')">Agregar al carrito</button>
+            </li>
         {{/each}}
     </ul>
+<div>
+    {{#if prevPage}}
+        <a href="{{prevPage}}">Página Anterior</a>
+    {{/if}}
+    <span>Página {{page}} de {{totalPages}}</span>
+    {{#if nextPage}}
+        <a href="{{nextPage}}">Página Siguiente</a>
+    {{/if}}
+</div>
 
-    <script src="/socket.io/socket.io.js"></script>
+
+
     <script>
-        const socket = io();
-
-        socket.on('updateProducts', (products) => {
-            const productList = document.getElementById('productList');
-            productList.innerHTML = '';
-
-            products.forEach((product) => {
-                const productItem = document.createElement('li');
-                productItem.textContent = `${product.title} - ${product.price} USD - Cantidad: ${product.quantity}`;
-                productList.appendChild(productItem);
-            });
-        });
+        function addToCart(productId) {
+            fetch(`/api/carts/:cid/product/${productId}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => alert(data.message || "Producto agregado al carrito"))
+                .catch(error => console.error('Error al agregar producto al carrito:', error));
+        }
     </script>
 </body>
 </html>
